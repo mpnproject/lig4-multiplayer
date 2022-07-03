@@ -31,19 +31,31 @@ export const Game: React.FC = () => {
     isGameStarted,
   } = useContext(gameContext);
 
+  const checkMatrixState = (matrixCompose: (string | null)[][], column: number, row: number, symbol: string) => {
+    const matrixLength = matrixCompose.length - 1;
+
+    for (let rowIdx = matrixLength; rowIdx >= 0; rowIdx--) {
+      if (matrixCompose[rowIdx][column] === null) {
+        matrixCompose[rowIdx][column] = symbol;
+        setMatrix(matrixCompose);
+        break;
+      }
+    }
+
+    return matrixCompose;
+  };
+
   const checkGameState = (matrix: IPlayMatrix) => {
 
+    console.log("teste");
 
     return [false, false];
   };
 
   const updateGameMatrix = (column: number, row: number, symbol: string) => {
-    const newMatrix = [...matrix];
-
-    if (newMatrix[row][column] === null || newMatrix[row][column] === "null") {
-      newMatrix[row][column] = symbol;
-      setMatrix(newMatrix);
-    }
+    let matrixCompose = [...matrix];
+   
+    const newMatrix = checkMatrixState(matrixCompose, column, row, symbol);
 
     if (socketService.socket) {
       gameService.updateGame(socketService.socket, newMatrix);
@@ -100,31 +112,29 @@ export const Game: React.FC = () => {
         <h2>waiting player!</h2>
       )}
       {(!isGameStarted || !isPlayerTurn) && <PlayStopper />}
-      {matrix.map((row, rowIdx) => {
-        return (
-          <RowContainer>
-            {row.map((column, columnIdx) => (
-              <Cell
-                key={columnIdx}
-                onClick={() => {
-                  console.log(playerSymbol);
-                  updateGameMatrix(columnIdx, rowIdx, playerSymbol)
-                }
-                  
-                }
-              >
-                {column && column !== "null" ? (
-                  column === "o" ? (
-                    <PlayerOne />
-                  ) : (
-                    <PlayerTwo />
-                  )
-                ) : null}
-              </Cell>
-            ))}
-          </RowContainer>
-        );
-      })}
+      {matrix.map((row, rowIdx) => (
+        <RowContainer key={rowIdx}>
+          {row.map((column, columnIdx) => (
+            <Cell
+              key={columnIdx}
+              onClick={() => {
+                console.log("playerSymbol", playerSymbol);
+                updateGameMatrix(columnIdx, rowIdx, playerSymbol)
+              }
+                
+              }
+            >
+              {column && column !== "null" ? (
+                column === "o" ? (
+                  <PlayerOne />
+                ) : (
+                  <PlayerTwo />
+                )
+              ) : null}
+            </Cell>
+          ))}
+        </RowContainer>
+      ))}
     </GameContainer>
   );
 }
